@@ -400,3 +400,47 @@ footer p {
     padding: 30px 15px;
   }
 }
+.login-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-box {
+  background: white;
+  width: 100%;
+  max-width: 420px;
+  padding: 30px;
+  border-radius: 14px;
+  text-align: center;
+  position: relative;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 14px;
+  margin: 10px 0;
+  border: 1px solid #cbddec;
+  border-radius: 7px;
+}
+
+.login-box button:not(.close-login) {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.close-login {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  border: 0;
+  background: none;
+  color: #102a43;
+  font-size: 28px;
+  cursor: pointer;
+}
