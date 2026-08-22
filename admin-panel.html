@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Player MC Admin Panel</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    .admin-panel {
+      padding: 40px 7%;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .admin-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      margin: 20px 0;
+      box-shadow: 0 8px 25px rgba(30,100,160,.08);
+      overflow-x: auto;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+
+    .admin-table th,
+    .admin-table td {
+      padding: 12px;
+      border-bottom: 1px solid #d9e8f5;
+      text-align: left;
+    }
+
+    .admin-table th {
+      background: #e5f1ff;
+      color: #102a43;
+    }
+
+    .admin-form input {
+      width: 100%;
+      padding: 14px;
+      margin: 8px 0;
+      border: 1px solid #cbddec;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+
+    .permissions {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 15px 0;
+    }
+
+    .permission {
+      background: #f4f9ff;
+      padding: 12px;
+      border-radius: 7px;
+    }
+
+    .permission input {
+      margin-right: 8px;
+    }
+
+    .logout {
+      background: #d62828;
+    }
+
+    .logout:hover {
+      background: #a91f1f;
+    }
+
+    #admin-message {
+      font-weight: bold;
+      margin-top: 15px;
+    }
+
+    @media(max-width:700px) {
+      .admin-panel {
+        padding: 25px 18px;
+      }
+
+      .admin-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .permissions {
+        grid-template-columns: 1fr;
+      }
+
+      .logout {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">PLAYER <span>MC</span></div>
+</header>
+
+<main class="admin-panel">
+
+  <div class="admin-header">
+    <div>
+      <h1>Admin Dashboard</h1>
+      <p id="admin-name">Loading...</p>
+    </div>
+
+    <button class="logout" id="logout">
+      LOGOUT
+    </button>
+  </div>
+
+
+  <!-- ORDERS -->
+
+  <div class="admin-card">
+
+    <h2>📦 Orders</h2>
+
+    <div id="orders">
+      Loading orders...
+    </div>
+
+  </div>
+
+
+  <!-- CREATE ADMIN -->
+
+  <div class="admin-card">
+
+    <h2>👑 Create Admin</h2>
+
+    <form id="create-admin-form" class="admin-form">
+
+      <input
+        id="new-email"
+        type="email"
+        placeholder="New admin email"
+        required
+      >
+
+      <input
+        id="new-password"
+        type="password"
+        placeholder="Temporary password (8+ characters)"
+        minlength="8"
+        required
+      >
+
+      <div class="permissions">
+
+        <label class="permission">
+          <input type="checkbox" id="p-orders">
+          Orders
+        </label>
+
+        <label class="permission">
+          <input type="checkbox" id="p-products">
+          Products
+        </label>
+
+        <label class="permission">
+          <input type="checkbox" id="p-dashboard">
+          Dashboard
+        </label>
+
+        <label class="permission">
+          <input type="checkbox" id="p-admins">
+          Admin Management
+        </label>
+
+      </div>
+
+      <button type="submit">
+        CREATE ADMIN
+      </button>
+
+    </form>
+
+    <p id="admin-message"></p>
+
+  </div>
+
+</main>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+const SUPABASE_URL =
+  "https://tkjrrqpufbfmqxeylpqn.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_opa0V471t-Vvi0v8hW9Hrw_tPLstVxz";
+
+const client =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+// ================================
+// CHECK ADMIN LOGIN
+// ================================
+
+async function start() {
+
+  const {
+    data: sessionData
+  } = await client.auth.getSession();
+
+  if (!sessionData.session) {
+
+    location.href = "admin.html";
+
+    return;
+  }
+
+  const user =
+    sessionData.session.user;
+
+
+  // Get admin information
+
+  const {
+    data: admin,
+    error
+  } = await client
+    .from("admins")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+
+  if (
+    error ||
+    !admin ||
+    !admin.is_super_admin
+  ) {
+
+    await client.auth.signOut();
+
+    location.href = "admin.html";
+
+    return;
+  }
+
+
+  document
+    .getElementById("admin-name")
+    .textContent =
+      "Logged in as: " +
+      (admin.username || user.email);
+
+
+  loadOrders();
+}
+
+
+// ================================
+// LOAD ORDERS
+// ================================
+
+async function loadOrders() {
+
+  const {
+    data,
+    error
+  } = await client
+    .from("orders")
+    .select("*")
+    .order(
+      "created_at",
+      {
+        ascending: false
+      }
+    );
+
+
+  if (error) {
+
+    document
+      .getElementById("orders")
+      .textContent =
+        "Error: " + error.message;
+
+    return;
+  }
+
+
+  if (!data || data.length === 0) {
+
+    document
+      .getElementById("orders")
+      .textContent =
+        "No orders yet.";
+
+    return;
+  }
+
+
+  let html = `
+
+    <table class="admin-table">
+
+      <tr>
+        <th>Player</th>
+        <th>Email</th>
+        <th>Discord</th>
+        <th>Items</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Date</th>
+      </tr>
+
+  `;
+
+
+  data.forEach(order => {
+
+    let items = "";
+
+    if (Array.isArray(order.items)) {
+
+      items =
+        order.items
+          .map(item =>
+            `${item.name} - ₹${item.price}`
+          )
+          .join("<br>");
+
+    } else {
+
+      items = "—";
+
+    }
+
+
+    const date =
+      order.created_at
+        ? new Date(order.created_at)
+            .toLocaleString()
+        : "—";
+
+
+    html += `
+
+      <tr>
+
+        <td>
+          ${escapeHTML(
+            order.minecraft_username || ""
+          )}
+        </td>
+
+        <td>
+          ${escapeHTML(
+            order.email || ""
+          )}
+        </td>
+
+        <td>
+          ${escapeHTML(
+            order.discord_username || ""
+          )}
+        </td>
+
+        <td>
+          ${items}
+        </td>
+
+        <td>
+          ₹${order.total || 0}
+        </td>
+
+        <td>
+          ${escapeHTML(
+            order.status || "pending"
+          )}
+        </td>
+
+        <td>
+          ${date}
+        </td>
+
+      </tr>
+
+    `;
+
+  });
+
+
+  html += "</table>";
+
+
+  document
+    .getElementById("orders")
+    .innerHTML = html;
+}
+
+
+// ================================
+// CREATE ADMIN
+// ================================
+
+document
+  .getElementById("create-admin-form")
+  .addEventListener(
+    "submit",
+    async function(event) {
+
+      event.preventDefault();
+
+
+      const email =
+        document
+          .getElementById("new-email")
+          .value
+          .trim();
+
+
+      const password =
+        document
+          .getElementById("new-password")
+          .value;
+
+
+      const permissions = {
+
+        orders:
+          document
+            .getElementById("p-orders")
+            .checked,
+
+        products:
+          document
+            .getElementById("p-products")
+            .checked,
+
+        dashboard:
+          document
+            .getElementById("p-dashboard")
+            .checked,
+
+        admins:
+          document
+            .getElementById("p-admins")
+            .checked
+
+      };
+
+
+      const message =
+        document
+          .getElementById("admin-message");
+
+
+      message.textContent =
+        "Creating admin...";
+
+
+      // Get current session
+
+      const {
+        data: sessionData
+      } =
+        await client.auth.getSession();
+
+
+      if (!sessionData.session) {
+
+        message.textContent =
+          "❌ Please login again.";
+
+        return;
+      }
+
+
+      const token =
+        sessionData
+          .session
+          .access_token;
+
+
+      // Call Edge Function
+
+      const response =
+        await fetch(
+
+          `${SUPABASE_URL}/functions/v1/create-admin`,
+
+          {
+
+            method: "POST",
+
+            headers: {
+
+              "Content-Type":
+                "application/json",
+
+              "Authorization":
+                `Bearer ${token}`
+
+            },
+
+            body:
+              JSON.stringify({
+
+                email:
+                  email,
+
+                password:
+                  password,
+
+                permissions:
+                  permissions
+
+              })
+
+          }
+
+        );
+
+
+      const result =
+        await response.json();
+
+
+      if (!response.ok) {
+
+        message.textContent =
+          "❌ " +
+          (
+            result.error ||
+            "Failed to create admin"
+          );
+
+        return;
+      }
+
+
+      message.textContent =
+        "✅ Admin created successfully!";
+
+
+      // Clear form
+
+      document
+        .getElementById(
+          "create-admin-form"
+        )
+        .reset();
+
+    }
+  );
+
+
+// ================================
+// LOGOUT
+// ================================
+
+document
+  .getElementById("logout")
+  .addEventListener(
+    "click",
+    async () => {
+
+      await client.auth.signOut();
+
+      location.href =
+        "admin.html";
+
+    }
+  );
+
+
+// ================================
+// HTML SECURITY
+// ================================
+
+function escapeHTML(value) {
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+}
+
+
+// Start
+
+async function start() {
+  const { data, error } = await client.auth.getUser();
+
+  console.log("Auth user:", data?.user);
+  console.log("Auth error:", error);
+
+  if (error || !data?.user) {
+    document.getElementById("admin-name").textContent =
+      "Not logged in: " + (error?.message || "");
+    return;
+  }
+
+  const user = data.user;
+
+  const { data: admin, error: adminError } = await client
+    .from("admins")
+    .select("*")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  console.log("User ID:", user.id);
+  console.log("Admin:", admin);
+  console.log("Admin error:", adminError);
+
+  if (adminError) {
+    document.getElementById("admin-name").textContent =
+      "Database error: " + adminError.message;
+    return;
+  }
+
+  if (!admin) {
+    document.getElementById("admin-name").textContent =
+      "Admin record not found. User ID: " + user.id;
+    return;
+  }
+
+  if (!admin.is_super_admin) {
+    document.getElementById("admin-name").textContent =
+      "This account is not a super admin.";
+    return;
+  }
+
+  document.getElementById("admin-name").textContent =
+    "Logged in as: " + (admin.username || user.email);
+
+  loadOrders();
+}
+
+</script>
+
+</body>
+</html>
