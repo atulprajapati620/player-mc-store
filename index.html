@@ -18,13 +18,21 @@
     <a href="#yt-world">YT World</a>
     <a href="#cart">Cart 🛒</a>
   </nav>
+
+  <button class="login-btn" onclick="openLogin()">LOGIN</button>
 </header>
 
 <section class="hero" id="home">
   <div>
     <p class="server">PLAYER MC • MINECRAFT SERVER</p>
-    <h1>Upgrade Your<br><span>Player Experience</span></h1>
+
+    <h1>
+      Upgrade Your<br>
+      <span>Player Experience</span>
+    </h1>
+
     <p>Get exclusive ranks and special perks on Player MC.</p>
+
     <a href="#ranks" class="button">VIEW PRODUCTS</a>
   </div>
 </section>
@@ -40,16 +48,23 @@
       <h3>VIP Rank</h3>
       <p class="duration">1 MONTH</p>
       <div class="price">₹50</div>
-      <button onclick="addToCart('VIP Rank', 50)">ADD TO CART</button>
+
+      <button onclick="addToCart('VIP Rank', 50)">
+        ADD TO CART
+      </button>
     </div>
 
     <div class="product featured">
       <div class="badge">POPULAR</div>
+
       <div class="product-icon">MVP</div>
       <h3>MVP Rank</h3>
       <p class="duration">1 MONTH</p>
       <div class="price">₹100</div>
-      <button onclick="addToCart('MVP Rank', 100)">ADD TO CART</button>
+
+      <button onclick="addToCart('MVP Rank', 100)">
+        ADD TO CART
+      </button>
     </div>
 
   </div>
@@ -57,7 +72,9 @@
 
 <section class="products-section" id="yt-world">
   <h2>YT WORLD</h2>
-  <p class="subtitle">Special perks for your Minecraft journey</p>
+  <p class="subtitle">
+    Special perks for your Minecraft journey
+  </p>
 
   <div class="products">
 
@@ -66,7 +83,10 @@
       <h3>YT World</h3>
       <p class="duration">1 MONTH</p>
       <div class="price">₹50</div>
-      <button onclick="addToCart('YT World', 50)">ADD TO CART</button>
+
+      <button onclick="addToCart('YT World', 50)">
+        ADD TO CART
+      </button>
     </div>
 
     <div class="product">
@@ -74,14 +94,19 @@
       <h3>Helper Player Slot</h3>
       <p class="duration">PER PLAYER</p>
       <div class="price">₹10</div>
-      <button onclick="addToCart('Helper Player Slot', 10)">ADD TO CART</button>
+
+      <button onclick="addToCart('Helper Player Slot', 10)">
+        ADD TO CART
+      </button>
     </div>
 
   </div>
 </section>
 
 <section class="cart-section" id="cart">
+
   <h2>YOUR CART</h2>
+
   <div id="cart-items">
     <p>Your cart is empty.</p>
   </div>
@@ -89,11 +114,16 @@
   <div class="cart-total">
     Total: ₹<span id="cart-total">0</span>
   </div>
+
 </section>
 
 <section class="checkout-section" id="checkout">
+
   <h2>CHECKOUT</h2>
-  <p class="subtitle">Enter your details to place your order</p>
+
+  <p class="subtitle">
+    Login first, then complete your payment
+  </p>
 
   <form id="checkout-form">
 
@@ -101,6 +131,7 @@
       type="text"
       id="player-name"
       placeholder="Minecraft Username"
+      readonly
       required
     >
 
@@ -119,24 +150,117 @@
     >
 
     <div class="checkout-summary">
+
       <h3>Order Total</h3>
-      <div>₹<span id="checkout-total">0</span></div>
+
+      <div>
+        ₹<span id="checkout-total">0</span>
+      </div>
+
     </div>
 
-    <button type="submit">PLACE ORDER</button>
+    <button
+      type="button"
+      id="upi-button"
+    >
+      PAY WITH UPI
+    </button>
+
+    <div
+      id="payment-upload"
+      style="display:none;"
+    >
+
+      <p>
+        After completing payment,
+        upload your payment screenshot.
+      </p>
+
+      <input
+        type="file"
+        id="payment-screenshot"
+        accept="image/png,image/jpeg,image/webp"
+        required
+      >
+
+      <button type="submit">
+        SUBMIT PAYMENT
+      </button>
+
+    </div>
 
   </form>
 
-  <div id="order-success" class="order-success"></div>
+  <div
+    id="order-success"
+    class="order-success"
+  ></div>
+
 </section>
 
 <footer>
   <strong>PLAYER MC</strong>
   <p>Minecraft Server Store</p>
 </footer>
-  
+
+
+<!-- LOGIN POPUP -->
+
+<div
+  id="login-modal"
+  class="login-modal"
+>
+
+  <div class="login-box">
+
+    <button
+      class="close-login"
+      onclick="closeLogin()"
+    >
+      ×
+    </button>
+
+    <h2>PLAYER MC LOGIN</h2>
+
+    <p class="subtitle">
+      Enter your Minecraft username
+    </p>
+
+    <input
+      type="text"
+      id="login-ign"
+      placeholder="Minecraft Username"
+      autocomplete="off"
+    >
+
+    <div
+      id="admin-password-box"
+      style="display:none;"
+    >
+
+      <input
+        type="password"
+        id="admin-password"
+        placeholder="Admin Password"
+        autocomplete="current-password"
+      >
+
+    </div>
+
+    <button onclick="loginUser()">
+      LOGIN
+    </button>
+
+    <p id="login-message"></p>
+
+  </div>
+
+</div>
+
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<script src="script.js"></script>
 
 </body>
 </html>
